@@ -83,6 +83,7 @@ btnLogin.addEventListener('click', (event) => {
     createTransactions(currentUser);
     amoutMoney(currentUser);
     cashback(currentUser);
+    setTimer();
   }
 })
 
@@ -204,6 +205,7 @@ const closeAccount = function (user = currentUser) {
 }
 
 // Sort
+
 let sorted = false;
 btnSort.addEventListener('click', (event) => {
   event.preventDefault();
@@ -213,17 +215,62 @@ btnSort.addEventListener('click', (event) => {
 });
 
 let arr = null;
-const sorting = function (user = currentUser) { 
+const sorting = function (user = currentUser) {
   let temp = [...user.movements];
   if (sorted) {
     temp.sort((a, b) => a - b);
     arr = [...user.movements];
     user.movements = [...temp];
-  } else { user.movements = arr; temp = arr};
+  } else { user.movements = arr; temp = arr };
   createTransactions(user);
 }
 
+// Timer
 
+/* Task: create Timer
+* setTime - funksiya vaqtni HTML da uzgarishini boshqaradi.
+* setTimer - harbir muvofaqqiyatli saytga kirishda ishleydi
+*/
+const setTime = function (minut, secund) {
+
+  labelTimer.innerHTML = `${minut} : ${secund % 60}`;
+  secund--;
+
+  return function () {
+    labelTimer.innerHTML = `${String((Math.trunc(secund / 60))).padStart(2, 0)} : ${String((Math.trunc(secund % 60))).padStart(2, 0)}`;
+    secund--;
+  }
+
+}
+
+const setTimer = function () {
+
+  btnLogin.addEventListener('click', () => {
+    if (currentUser){
+      clearInterval(timeInterval);
+    }
+  })
+
+  let minut = 1;
+  let secund = minut * 60;
+
+  console.log(minut, secund);
+
+  let time = setTime(minut, secund);
+
+  // vaqt quyamiz 1s oralatib
+  
+  let timeInterval = setInterval(
+    time, 1000);
+  // 1 daqiqa utganidan sung setTimout clearInterval funksiyani chaqiradi 
+  // u interval vaqtni tuxtatadi va chiqib ketadi
+  setTimeout(() => {
+    clearInterval(timeInterval);
+    containerApp.style.opacity = 0;
+    labelWelcome.textContent = 'Log in to get started';
+  }, secund * 1000);
+
+}
 
 
 /////////////////////////////////////////////////
