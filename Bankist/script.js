@@ -6,28 +6,28 @@
 
 // Data
 const account1 = {
-  owner: 'Jonas Schmedtmann',
+  owner: 'Tolib Dilmurodov',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
 };
 
 const account2 = {
-  owner: 'Jessica Davis',
+  owner: 'Umid Rustamov',
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
 };
 
 const account3 = {
-  owner: 'Steven Thomas Williams',
+  owner: 'Golib Dilmurodov',
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
 };
 
 const account4 = {
-  owner: 'Sarah Smith',
+  owner: 'Sarvinoz Dilmurodova',
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
@@ -244,12 +244,13 @@ const setTime = function (minut, secund) {
 }
 
 const setTimer = function () {
-
   btnLogin.addEventListener('click', () => {
-    if (currentUser){
+    if (currentUser) {
+      console.log(timeInterval);
       clearInterval(timeInterval);
+      clearTimeout(timeOut);
     }
-  })
+  });
 
   let minut = 1;
   let secund = minut * 60;
@@ -259,13 +260,14 @@ const setTimer = function () {
   let time = setTime(minut, secund);
 
   // vaqt quyamiz 1s oralatib
-  
+
   let timeInterval = setInterval(
     time, 1000);
-  // 1 daqiqa utganidan sung setTimout clearInterval funksiyani chaqiradi 
+  // 1 daqiqa utganidan so'ng setTimout clearInterval funksiyani chaqiradi 
   // u interval vaqtni tuxtatadi va chiqib ketadi
-  setTimeout(() => {
+  let timeOut = setTimeout(() => {
     clearInterval(timeInterval);
+    console.log(timeInterval);
     containerApp.style.opacity = 0;
     labelWelcome.textContent = 'Log in to get started';
   }, secund * 1000);
