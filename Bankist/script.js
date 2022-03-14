@@ -233,7 +233,7 @@ const sorting = function (user = currentUser) {
 */
 const setTime = function (minut, secund) {
 
-  labelTimer.innerHTML = `${minut} : ${secund % 60}`;
+  labelTimer.innerHTML = `${String((Math.trunc(secund / 60))).padStart(2, 0)} : ${String((Math.trunc(secund % 60))).padStart(2, 0)}`;
   secund--;
 
   return function () {
