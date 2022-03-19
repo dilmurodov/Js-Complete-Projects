@@ -10,6 +10,8 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+  locale: 'US',
+  currency: 'EUR'
 };
 
 const account2 = {
@@ -17,6 +19,8 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+  locale: 'US',
+  currency: 'USD'
 };
 
 const account3 = {
@@ -24,6 +28,8 @@ const account3 = {
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
+  locale: 'US',
+  currency: 'USD'
 };
 
 const account4 = {
@@ -31,6 +37,8 @@ const account4 = {
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
+  locale: 'US',
+  currency: 'EUR'
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -70,6 +78,48 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 let currentUser = null;
+let tempUser = null;
+
+// Num Manage
+
+const amountFormat = function (user = currentUser, amount) {
+  optionsNum.currency = user.locale;
+  return new Intl.NumberFormat(
+    user.locale, {
+      style: 'currency',
+      currency: user.currency
+  }).format(amount);
+}
+
+let date =  new Date();
+let timeH = `${date.getHours()}`.padStart(2, "0")
+let timeM = `${date.getMinutes()}`.padStart(2, "0")
+let year = `${date.getFullYear()},  ${timeH}:${timeM}`.padStart(4, "0");
+let month = `${date.getMonth()}`.padStart(2, "0");
+let day = `${date.getDate()}`.padStart(2, "0");
+
+
+// MovementsDate 
+
+let movementsDate = [
+  '2021-05-16T11:45:41.583Z',
+  '2021-06-16T11:45:41.583Z',
+  '2021-12-16T11:45:41.583Z',
+  '2022-01-16T11:45:41.583Z',
+  '2022-02-16T11:45:41.583Z',
+  '2022-03-16T11:45:41.583Z',
+  '2022-03-16T11:45:41.583Z',
+  '2022-03-16T11:45:41.583Z'
+]
+
+// Movementsdate to string
+
+const dateTransaction = function (key) {
+  let [yearTrans, monthTrans, dateTrans] = movementsDate[key].split('T')[0].split('-');
+  let hour = +movementsDate[key].split('T')[1].split(':')[0] + 5 + '';
+  let minute = movementsDate[key].split('T')[1].split(':')[1]
+  return [yearTrans, monthTrans, dateTrans, hour, minute];
+}
 
 btnLogin.addEventListener('click', (event) => {
   event.preventDefault();
@@ -77,14 +127,19 @@ btnLogin.addEventListener('click', (event) => {
   let pin = +inputLoginPin.value;
   currentUser = accounts.find(item => item.username === usr && item?.pin === pin && (labelWelcome.textContent = `Welcome ${item?.owner}`));
   if (currentUser) {
+    tempUser = currentUser;
     containerApp.style.opacity = 1;
     inputLoginUsername.value = '';
     inputLoginPin.value = '';
+    labelDate.textContent = `${day}/${month}/${year}`;
     createTransactions(currentUser);
     amoutMoney(currentUser);
     cashback(currentUser);
     setTimer();
-  }
+  } else {
+    currentUser = tempUser;
+    alert('Your username or password Wrong!');
+  };
 })
 
 // HTML Transactions Blocks
@@ -94,7 +149,7 @@ const transactionBlock = (trsacn, state, key) => `
     <div class="movements__type movements__type--${state}">
       ${key + 1} withdrawal
     </div>
-    <div class="movements__date">24/01/2037</div>
+    <div class="movements__date">${dateTransaction(key)[2]}/${dateTransaction(key)[1]}/${dateTransaction(key)[0]}, ${dateTransaction(key)[3]}: ${dateTransaction(key)[4]}</div>
     <div class="movements__value">${trsacn}€</div>
   </div>`
 
@@ -103,7 +158,7 @@ const createTransactions = function (user) {
   user.movements.forEach((item, key) => {
     let state = null;
     if (item < 0) state = 'withdrawal'; else state = 'deposit';
-    containerMovements.insertAdjacentHTML('afterbegin', transactionBlock(item, state, key));
+    containerMovements.insertAdjacentHTML('afterbegin', transactionBlock(amountFormat(user, item.toFixed(2)), state, key));
   })
 }
 
@@ -113,10 +168,11 @@ let sum = null;
 
 const amoutMoney = function (user) {
   sum = user.movements.reduce((acc, item) => acc + item, 0);
-  labelBalance.textContent = `${sum} €`;
+  labelBalance.textContent = `${amountFormat((user, sum))}`;
 }
 
 // Interest (komissiya)
+
 let sumIn = null;
 let sumOut = null;
 
@@ -125,8 +181,8 @@ const cashback = function (user) {
   sumIn = user.movements.reduce((acc, item) => item > 0 ? item + acc : acc, 0);
   let koms = user.movements.filter(item => item < 0).map(item => item * user.interestRate / 100).reduce((acc, item) => acc + item, 0)
   labelSumInterest.textContent = `${(koms).toFixed(2)}€`;
-  labelSumIn.textContent = `${sumIn}`;
-  labelSumOut.textContent = `${Math.abs(sumOut)}€`;
+  labelSumIn.textContent = `${Math.abs(amountFormat(user, sumIn.toFixed(2)))}`;
+  labelSumOut.textContent = `${Math.abs(amountFormat(user, sumOut.toFixed(2)))}`;
 }
 
 // Transfer Money
@@ -150,11 +206,11 @@ const transfer = function (user = currentUser) {
 
       userTo?.movements.push(transferAmount);
       user.movements.push(-Math.abs(transferAmount));
-
+      movementsDate.push(new Date().toISOString()+'');
+      console.log(movementsDate)
       amoutMoney(user);
       cashback(user);
       createTransactions(user);
-
       inputTransferTo.value = '';
       inputTransferAmount.value = '';
     }
@@ -171,10 +227,10 @@ btnLoan.addEventListener('click', (event) => {
 
 const requestLoan = function (user = currentUser) {
   let loanAmount = +inputLoanAmount.value;
-  if (loanAmount < (sumIn * 10) / 100) {
+  if (loanAmount < (sumIn * 10) / 100 && loanAmount > 0) {
 
     user.movements.push(loanAmount);
-
+    movementsDate.push(new Date().toISOString()+'');
     amoutMoney(user);
     cashback(user);
     createTransactions(user);
@@ -231,6 +287,7 @@ const sorting = function (user = currentUser) {
 * setTime - funksiya vaqtni HTML da uzgarishini boshqaradi.
 * setTimer - harbir muvofaqqiyatli saytga kirishda ishleydi
 */
+
 const setTime = function (minut, secund) {
 
   labelTimer.innerHTML = `${String((Math.trunc(secund / 60))).padStart(2, 0)} : ${String((Math.trunc(secund % 60))).padStart(2, 0)}`;
@@ -252,7 +309,7 @@ const setTimer = function () {
     }
   });
 
-  let minut = 1;
+  let minut = 10;
   let secund = minut * 60;
 
   console.log(minut, secund);
@@ -288,3 +345,34 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+// let currentTime = new Date();
+
+// let options = {
+//   day: "2-digit",
+//   month: '2-digit',
+//   weekday: 'long',
+//   year: 'numeric',
+//   hour: '2-digit',
+//   minute: '2-digit',
+//   second: '2-digit',
+//   hour12: false,
+// }
+
+// let dateTime = Intl.DateTimeFormat('uz-UZ',  options).format(currentTime);
+// console.log(dateTime);
+
+// => 2022-03-16, Wed 19:03:54
+
+// let nums = 12323;
+
+// let options = {
+//   style: "currency",
+//   currency: 'USD'
+// }
+
+// let numsLocate = new Intl.NumberFormat('US', options).format(nums);
+
+// console.log(numsLocate);
+
+// // ANS: 12 323,00 $
