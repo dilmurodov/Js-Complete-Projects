@@ -151,6 +151,10 @@ btnLogin.addEventListener('click', (event) => {
     amoutMoney(currentUser);
     cashback(currentUser);
     setTimer();
+    console.log(arr);
+    arr = null;
+    console.log(arr);
+    sorted = false;
   } else {
     currentUser = tempUser;
     alert('Your username or password Wrong!');
@@ -295,6 +299,7 @@ const sorting = function (user = currentUser) {
     user.movements = [...temp];
   } else { user.movements = arr; temp = arr };
   createTransactions(user);
+
 }
 
 // Timer
