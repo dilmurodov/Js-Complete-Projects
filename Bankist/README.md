@@ -3,7 +3,7 @@ Project: Bankist
 * Js (Intermediate)
 * Array (Sorting)
 * Objects (in Js)
-* DOM Events íº€
+* DOM Events ï¿½ï¿½ï¿½
 * Internationalization APIâœ¨
 
 ![alt](./Bankist.png)
