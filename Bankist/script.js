@@ -83,7 +83,7 @@ let tempUser = null;
 // Num Manage
 
 const amountFormat = function (user = currentUser, amount) {
-  optionsNum.currency = user.locale;
+  // optionsNum.currency = user.locale;
   return new Intl.NumberFormat(
     user.locale, {
       style: 'currency',
@@ -92,11 +92,21 @@ const amountFormat = function (user = currentUser, amount) {
 }
 
 let date =  new Date();
-let timeH = `${date.getHours()}`.padStart(2, "0")
-let timeM = `${date.getMinutes()}`.padStart(2, "0")
-let year = `${date.getFullYear()},  ${timeH}:${timeM}`.padStart(4, "0");
-let month = `${date.getMonth()}`.padStart(2, "0");
-let day = `${date.getDate()}`.padStart(2, "0");
+// let timeH = `${date.getHours()}`.padStart(2, "0")
+// let timeM = `${date.getMinutes()}`.padStart(2, "0")
+// let year = `${date.getFullYear()},  ${timeH}:${timeM}`.padStart(4, "0");
+// let month = `${date.getMonth()}`.padStart(2, "0");
+// let day = `${date.getDate()}`.padStart(2, "0");
+
+// --- Internationalization API ---
+let options = {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: '2-digit'
+}
 
 
 // MovementsDate 
@@ -114,11 +124,13 @@ let movementsDate = [
 
 // Movementsdate to string
 
-const dateTransaction = function (key) {
-  let [yearTrans, monthTrans, dateTrans] = movementsDate[key].split('T')[0].split('-');
-  let hour = +movementsDate[key].split('T')[1].split(':')[0] + 5 + '';
-  let minute = movementsDate[key].split('T')[1].split(':')[1]
-  return [yearTrans, monthTrans, dateTrans, hour, minute];
+const dateTransaction = function (user, key = 0) {
+  // let [yearTrans, monthTrans, dateTrans] = movementsDate[key].split('T')[0].split('-');
+  // let hour = +movementsDate[key].split('T')[1].split(':')[0] + 5 + '';
+  // let minute = movementsDate[key].split('T')[1].split(':')[1]
+  // return [yearTrans, monthTrans, dateTrans, hour, minute];
+  let transactionDate = new Date(movementsDate[key])
+  return new Intl.DateTimeFormat(user.locale, options).format(transactionDate);
 }
 
 btnLogin.addEventListener('click', (event) => {
@@ -131,7 +143,10 @@ btnLogin.addEventListener('click', (event) => {
     containerApp.style.opacity = 1;
     inputLoginUsername.value = '';
     inputLoginPin.value = '';
-    labelDate.textContent = `${day}/${month}/${year}`;
+    // labelDate.textContent = `${day}/${month}/${year}`;
+    setInterval(() => {
+      labelDate.textContent = new Intl.DateTimeFormat('ru-RU', options).format(new Date())
+    }, 1000);
     createTransactions(currentUser);
     amoutMoney(currentUser);
     cashback(currentUser);
@@ -144,13 +159,13 @@ btnLogin.addEventListener('click', (event) => {
 
 // HTML Transactions Blocks
 
-const transactionBlock = (trsacn, state, key) => `
+const transactionBlock = (user = currentUser, trsacn, state, key) => `
   <div class="movements__row">
     <div class="movements__type movements__type--${state}">
       ${key + 1} withdrawal
     </div>
-    <div class="movements__date">${dateTransaction(key)[2]}/${dateTransaction(key)[1]}/${dateTransaction(key)[0]}, ${dateTransaction(key)[3]}: ${dateTransaction(key)[4]}</div>
-    <div class="movements__value">${trsacn}€</div>
+    <div class="movements__date">${dateTransaction(user, key)}</div>
+    <div class="movements__value">${trsacn}</div>
   </div>`
 
 const createTransactions = function (user) {
@@ -158,7 +173,7 @@ const createTransactions = function (user) {
   user.movements.forEach((item, key) => {
     let state = null;
     if (item < 0) state = 'withdrawal'; else state = 'deposit';
-    containerMovements.insertAdjacentHTML('afterbegin', transactionBlock(amountFormat(user, item.toFixed(2)), state, key));
+    containerMovements.insertAdjacentHTML('afterbegin', transactionBlock(user, amountFormat(user, item.toFixed(2)), state, key));
   })
 }
 
@@ -168,7 +183,8 @@ let sum = null;
 
 const amoutMoney = function (user) {
   sum = user.movements.reduce((acc, item) => acc + item, 0);
-  labelBalance.textContent = `${amountFormat((user, sum))}`;
+  // console.log(sum);
+  labelBalance.textContent = `${amountFormat(user, sum.toFixed(2))}`;
 }
 
 // Interest (komissiya)
@@ -180,9 +196,9 @@ const cashback = function (user) {
   sumOut = user.movements.reduce((acc, item) => item < 0 ? item + acc : acc, 0);
   sumIn = user.movements.reduce((acc, item) => item > 0 ? item + acc : acc, 0);
   let koms = user.movements.filter(item => item < 0).map(item => item * user.interestRate / 100).reduce((acc, item) => acc + item, 0)
-  labelSumInterest.textContent = `${(koms).toFixed(2)}€`;
-  labelSumIn.textContent = `${Math.abs(amountFormat(user, sumIn.toFixed(2)))}`;
-  labelSumOut.textContent = `${Math.abs(amountFormat(user, sumOut.toFixed(2)))}`;
+  labelSumInterest.textContent = `${amountFormat(user, +(koms).toFixed(2))}`;
+  labelSumIn.textContent = `${amountFormat(user, +sumIn.toFixed(2))}`;
+  labelSumOut.textContent = `${amountFormat(user, +sumOut.toFixed(2))}`;
 }
 
 // Transfer Money
@@ -303,7 +319,6 @@ const setTime = function (minut, secund) {
 const setTimer = function () {
   btnLogin.addEventListener('click', () => {
     if (currentUser) {
-      console.log(timeInterval);
       clearInterval(timeInterval);
       clearTimeout(timeOut);
     }
@@ -312,7 +327,7 @@ const setTimer = function () {
   let minut = 10;
   let secund = minut * 60;
 
-  console.log(minut, secund);
+  // console.log(minut, secund);
 
   let time = setTime(minut, secund);
 
